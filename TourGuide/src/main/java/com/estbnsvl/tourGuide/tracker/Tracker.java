@@ -65,14 +65,14 @@ public class Tracker extends Thread {
 		}
 	}
 
-	public void trackAllUser(List<User> users) {
-		ExecutorService executorServiceMulti = Executors.newFixedThreadPool(200);
-		for (User user : users) {
-			executorServiceMulti.submit(new TrackUser(tourGuideService,user));
+	public void trackAllUser(List<User> allUser) {
+		ExecutorService executorService = Executors.newFixedThreadPool(200);
+		for (User user : allUser) {
+			executorService.submit(new TrackUser(tourGuideService,user));
 		}
-		executorServiceMulti.shutdown();
+		executorService.shutdown();
 		try {
-			executorServiceMulti.awaitTermination(25,TimeUnit.MINUTES);
+			executorService.awaitTermination(25,TimeUnit.MINUTES);
 		} catch (InterruptedException e) {
 			log.error("Tracking interrupted");
 		}
