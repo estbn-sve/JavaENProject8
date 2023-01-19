@@ -1,7 +1,12 @@
 package com.estbnsvl.tourGuide.service;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import com.estbnsvl.tourGuide.dto.ClosestAttractionDTO;
+import com.estbnsvl.tourGuide.dto.CurrentLocationDTO;
 import com.estbnsvl.tourGuide.userapi.InternalUserApi;
+import gpsUtil.location.Location;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,43 +41,6 @@ public class TourGuideService {
 		this.gpsUtil = gpsUtil;
 		this.rewardsService = rewardsService;
 		this.internalUserApi = internalUserApi;
-		/*traitementMultiThread();
-	}
-
-	private void traitementMultiThread(){
-		int userMax = InternalTestHelper.getInternalUserNumber();
-		int userByThread = 50;
-		double numberThread = (double) userMax / (double) userByThread;
-		double numberThreadMax= Math.floor(numberThread);
-		if (numberThread>numberThreadMax){
-			numberThreadMax = numberThreadMax+1;
-		}
-
-		internalUserApi.runInitializeInternalUsers();
-		List<User> userList = getAllUsers();
-		List<User> userListOk = new ArrayList<>();
-		for(int i=1; i<=numberThreadMax;i++) {
-			int g = i;
-			new Thread(() -> {
-				for (int y = (g - 1) * 100; y < g * 100; y++) {
-					userListOk.add(userList.get(y));
-					trackUserLocation(userListOk.get(y));
-					getTripDeals(userListOk.get(y));
-					getNearByAttractions(trackUserLocation(userListOk.get(y)));
-				}
-			}).start();
-		}*/
-	}
-
-	public List<UserReward> getUserRewards(User user) {
-		return user.getUserRewards();
-	}
-
-	public VisitedLocation getUserLocation(User user) {
-		VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ?
-			user.getLastVisitedLocation() :
-			trackUserLocation(user);
-		return visitedLocation;
 	}
 
 	public User getUser(String userName) {
@@ -88,12 +56,11 @@ public class TourGuideService {
 		internalUserApi.addUser(user);
 	}
 
-	public List<Provider> getTripDeals(User user) {
-		int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(UserReward::getRewardPoints).sum();
-		List<Provider> providers = tripPricer.getPrice(internalUserApi.getTripPricerApiKey(), user.getUserId(), user.getUserPreferences().getNumberOfAdults(),
-				user.getUserPreferences().getNumberOfChildren(), user.getUserPreferences().getTripDuration(), cumulatativeRewardPoints);
-		user.setTripDeals(providers);
-		return providers;
+	public VisitedLocation getUserLocation(User user) {
+		VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ?
+			user.getLastVisitedLocation() :
+			trackUserLocation(user);
+		return visitedLocation;
 	}
 
 	public VisitedLocation trackUserLocation(User user) {
@@ -101,6 +68,41 @@ public class TourGuideService {
 		user.addToVisitedLocations(visitedLocation);
 		rewardsService.calculateRewards(user);
 		return visitedLocation;
+	}
+
+	public List<ClosestAttractionDTO> getClosestAttractions(User user) throws NullPointerException{
+		return gpsUtil.getAttractions().stream()
+				.map(attraction -> new ClosestAttractionDTO(
+						attraction.attractionName,
+						new Location(attraction.latitude,attraction.longitude),
+						user.getLastVisitedLocation().location,
+						rewardsService.getDistance(user.getLastVisitedLocation().location,new Location(attraction.latitude,attraction.longitude)),
+						rewardsService.getRewardPoints(attraction, user)
+				))
+				.sorted(Comparator.comparing(ClosestAttractionDTO::getDistanceBetweenUserAndAttraction))
+				.limit(5)
+				.collect(Collectors.toList());
+	}
+
+	public List<UserReward> getUserRewards(User user) {
+		return user.getUserRewards();
+	}
+
+	public List<CurrentLocationDTO> getAllCurrentLocations() {
+		return getAllUsers().stream()
+				.map(user -> new CurrentLocationDTO(
+						user.getUserId().toString(),
+						user.getLastVisitedLocation().location
+				))
+				.collect(Collectors.toList());
+	}
+
+	public List<Provider> getTripDeals(User user) {
+		int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(UserReward::getRewardPoints).sum();
+		List<Provider> providers = tripPricer.getPrice(internalUserApi.getTripPricerApiKey(), user.getUserId(), user.getUserPreferences().getNumberOfAdults(),
+				user.getUserPreferences().getNumberOfChildren(), user.getUserPreferences().getTripDuration(), cumulatativeRewardPoints);
+		user.setTripDeals(providers);
+		return providers;
 	}
 
 	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {

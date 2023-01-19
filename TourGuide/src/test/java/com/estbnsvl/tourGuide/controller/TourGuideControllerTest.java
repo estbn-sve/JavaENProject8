@@ -4,9 +4,13 @@ import com.estbnsvl.tourGuide.model.user.User;
 import com.estbnsvl.tourGuide.service.TourGuideService;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
@@ -17,6 +21,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@RunWith(SpringRunner.class)
+@WebMvcTest(TourGuideController.class)
 public class TourGuideControllerTest {
 
     @Autowired
@@ -24,6 +30,7 @@ public class TourGuideControllerTest {
 
     @MockBean
     private TourGuideService tourGuideService;
+
 
     @Test
     public void getIndex_Should_Return_Ok() throws Exception {
@@ -50,23 +57,23 @@ public class TourGuideControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-//    @Test
-//    public void getClosestAttractions_Should_Return_Ok() throws Exception {
-//        User user = new User(new UUID(1,1),"","","");
-//        when(tourGuideService.getUser("internalUserTest1")).thenReturn(user);
-//        when(tourGuideService.getClosestAttractions(user)).thenReturn(new ArrayList<>());
-//        mockMvc.perform(get("/getClosestAttractions/internalUserTest1"))
-//                .andExpect(status().isOk());
-//    }
+    @Test
+    public void getClosestAttractions_Should_Return_Ok() throws Exception {
+        User user = new User(new UUID(1,1),"","","");
+        when(tourGuideService.getUser("internalUserTest1")).thenReturn(user);
+        when(tourGuideService.getClosestAttractions(user)).thenReturn(new ArrayList<>());
+        mockMvc.perform(get("/getClosestAttractions/internalUserTest1"))
+                .andExpect(status().isOk());
+    }
 
-//    @Test
-//    public void getClosestAttractions_Should_Return_NotFound() throws Exception {
-//        User user = new User(new UUID(1,1),"","","");
-//        when(tourGuideService.getUser("internalUserTest1")).thenReturn(user);
-//        when(tourGuideService.getClosestAttractions(user)).thenThrow(new NullPointerException());
-//        mockMvc.perform(get("/getClosestAttractions/internalUserTest1"))
-//                .andExpect(status().isNotFound());
-//    }
+    @Test
+    public void getClosestAttractions_Should_Return_NotFound() throws Exception {
+        User user = new User(new UUID(1,1),"","","");
+        when(tourGuideService.getUser("internalUserTest1")).thenReturn(user);
+        when(tourGuideService.getClosestAttractions(user)).thenThrow(new NullPointerException());
+        mockMvc.perform(get("/getClosestAttractions/internalUserTest1"))
+                .andExpect(status().isNotFound());
+    }
 
     @Test
     public void getRewards_Should_Return_Ok() throws Exception {
@@ -86,12 +93,12 @@ public class TourGuideControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-//    @Test
-//    public void getAllCurrentLocations_Should_Return_Ok() throws Exception {
-//        when(tourGuideService.getAllCurrentLocations()).thenReturn(new ArrayList<>());
-//        mockMvc.perform(get("/getAllCurrentLocations"))
-//                .andExpect(status().isOk());
-//    }
+    @Test
+    public void getAllCurrentLocations_Should_Return_Ok() throws Exception {
+        when(tourGuideService.getAllCurrentLocations()).thenReturn(new ArrayList<>());
+        mockMvc.perform(get("/getAllCurrentLocations"))
+                .andExpect(status().isOk());
+    }
 
     @Test
     public void getTripDeals_Should_Return_Ok() throws Exception {
