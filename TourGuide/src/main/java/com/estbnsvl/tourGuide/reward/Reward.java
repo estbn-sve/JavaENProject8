@@ -29,7 +29,7 @@ public class Reward extends Thread {
         try {
             executorService.awaitTermination(25, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
-            log.error("Tracking interrupted");
+            log.error("Reward interrupted");
         }
     }
 }
