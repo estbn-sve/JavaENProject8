@@ -26,7 +26,7 @@ public class TourGuideService {
 	@Autowired
 	private Tracker tracker;
 
-	@Autowired
+	@Autowired(required=true)
 	private TripPricer tripPricer;
 
 
